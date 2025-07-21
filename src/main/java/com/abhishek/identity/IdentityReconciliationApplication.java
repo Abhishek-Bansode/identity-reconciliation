@@ -9,5 +9,4 @@ public class IdentityReconciliationApplication {
 	public static void main(String[] args) {
 		SpringApplication.run(IdentityReconciliationApplication.class, args);
 	}
-
 }
