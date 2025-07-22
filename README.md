@@ -1,10 +1,10 @@
 # Identity Reconciliation System
 
-An identity reconciliation service that intelligently links contacts based on shared identifiers (*email* and/or *phone number*). Designed to avoid duplication and enable a consistent representation of a person’s identity across different data sources.
+An identity reconciliation service that intelligently links contacts based on shared identifiers (*email* and/or *phone number*). Designed to avoid duplication and enable a consistent representation of a person's identity across different data sources.
 
 > 🤖 **Problem Statement:** <https://bitespeed.notion.site/Bitespeed-Backend-Task-Identity-Reconciliation-1fb21bb2a930802eb896d4409460375c>
 
-> 🚀 **Deployed on:** <https://identity-reconciliation-sb.onrender.com/api/v1/identify>
+> 🚀 **Deployed on:** <https://identity-reconciliation-ae5r.onrender.com/swagger-ui/index.html>
 
 ---
 
@@ -12,11 +12,12 @@ An identity reconciliation service that intelligently links contacts based on sh
 
 - 🔗 Intelligent linking of duplicate contacts based on phone/email
 - 📇 Maintains a single **primary** identity with **secondary** relationships
-- 🛠️ Built using **Spring Boot&nbsp;3.5.3** and **Java&nbsp;17**
+- 🔄 Automatic merging and demotion of conflicting primary records
+- 🧪 Interactive API docs via **Swagger UI**
 - 🐘 **PostgreSQL** (hosted on **Neon DB**)
 - 🐳 **Dockerized** for containerized builds
-- ☁️ Deployed to **Render** from a Docker image
-- 🔐 Uses **environment variables** (or Docker/Render secrets) for sensitive data
+- ☁️ CI/CD via **Render Blueprint + Docker**
+- 🔐 Uses **environment variables** (Render secrets) for sensitive data
 
 ---
 
@@ -30,7 +31,8 @@ An identity reconciliation service that intelligently links contacts based on sh
 | Database     | PostgreSQL (Neon DB)        |
 | Build Tool   | Maven                       |
 | Container    | Docker                      |
-| Deployment   | Render                      |
+| Deployment   | Render (Docker-based)       |
+| API Docs     | Swagger (Springdoc)         |
 | API Testing  | Postman                     |
 
 ---
@@ -60,32 +62,37 @@ Create a new contact **or** link to an existing one based on the supplied *email
 }
 ```
 
-#### 📌 Rules
-1. **No match found** → create a new *primary* contact.
-2. **Match found** (by email **or** phone)
-   - Link new/secondary contact to the existing primary.
-3. If *both* matched contacts are *primary* → demote the **newer** one.
-4. Circular linking is **prevented**.
+---
+
+## 🔎 API Documentation with Swagger
+
+You can interact with the API via Swagger UI:
+
+🧭 **URL:** [/swagger-ui.html](https://identity-reconciliation-ae5r.onrender.com/swagger-ui/index.html)
+
+Explore endpoints, try real-time API calls, and view schemas live.
 
 ---
 
 ## 🛠️ Local Development Setup
 
-1. **Clone the repo**
-   ```bash
-   git clone https://github.com/Abhishek-Bansode/identity-reconciliation.git
-   cd identity-reconciliation
-   ```
-2. **Set environment variables** (via `.env` or export):
-   ```properties
-   DB_URL=jdbc:postgresql://<host>:<port>/<dbname>
-   DB_USERNAME=<your_db_user>
-   DB_PASSWORD=<your_db_password>
-   ```
-3. **Run with Maven**
-   ```bash
-   ./mvnw spring-boot:run
-   ```
+### Clone the repo
+```bash
+git clone https://github.com/Abhishek-Bansode/identity-reconciliation.git
+cd identity-reconciliation
+```
+
+### Set environment variables
+```bash
+DB_URL=jdbc:postgresql://<host>:<port>/<dbname>
+DB_USERNAME=<your_db_user>
+DB_PASSWORD=<your_db_password>
+```
+
+### Run locally
+```bash
+./mvnw spring-boot:run
+```
 
 ---
 
@@ -109,52 +116,72 @@ docker run -d -p 8080:8080 \
 
 ## 🚀 Deployment (Render)
 
-| Setting            | Value                       |
-|--------------------|-----------------------------|
-| **Service Type**   | Web Service                 |
-| **Runtime**        | Docker                      |
-| **Build Command**  | *(external image – none)*   |
-| **Start Command**  | `java -jar app.jar`         |
+| Setting | Value |
+|---------|-------|
+| Service Type | Web Service |
+| Runtime | Docker |
+| Build Command | (external image – none) |
+| Start Command | Handled via Dockerfile |
 
-1. Push Docker image to Docker Hub.
-2. Create a **Docker-based** Web Service on Render.
-3. Add the following **Environment Variables**:
+1. Push Docker image to Docker Hub (or use Dockerfile in repo)
+2. Create Docker-based web service on [Render](https://render.com/)
+3. Add these Environment Variables:
    - `DB_URL`
    - `DB_USERNAME`
    - `DB_PASSWORD`
-4. Deploy & verify – the service is live!
+
+---
+
+## 📦 Render Blueprint Deployment (CI/CD Ready)
+
+This project supports auto-deployments using a `render.yaml` file (Infrastructure-as-Code).
+
+🚀 **Steps:**
+1. Fork the GitHub repo
+2. Update environment variables in the [Render dashboard](https://dashboard.render.com/)
+3. Click "New Blueprint" → "Connect Repo"
+4. Render will read `render.yaml` and spin up your service automatically
+
+✅ No hardcoded credentials  
+🔁 Auto-deploys on each Git push to main
 
 ---
 
 ## 🔐 Secrets & Security
 
-- **DB credentials are *never* hard-coded.**
-- Use **Docker secrets** or **Render environment variables** to inject sensitive data.
-- Production DB (Neon DB) requires **SSL-enabled** connections.
+- ✅ No sensitive credentials in code
+- ✅ DB credentials are injected securely via Render Environment Variables
+- ✅ Supports SSL connections for NeonDB in production
+- ✅ Docker builds do not expose secrets
 
 ---
 
 ## 📬 Postman Collection
-Test every scenario—including new contacts, partial matches, multiple secondaries—using the bundled Postman collection.
 
-➡️ **Download:**
+You can test all scenarios with the bundled Postman collection.
+
+📥 **Download:** [Postman Collection (Click Here)](https://www.postman.com/collections/YOUR-COLLECTION-LINK)
+
+Includes tests for:
+- ✅ New contacts
+- ✅ Email-only or phone-only matches
+- ✅ Multi-secondary merging
+- ✅ Demotion of duplicate primaries
 
 ---
 
 ## 🧹 Git Commit Hygiene
 
-- Descriptive, task-focused commit messages
-- Logical commit grouping (init, entity, service, Docker, etc.)
-- Excludes editor/OS artifacts (`.DS_Store`, build outputs, etc.)
+- ✅ Descriptive commit messages
+- ✅ Atomic changes (feature-wise)
+- ✅ Follows `.gitignore` for clean history
 
 ---
 
 ## 🧠 Learnings Applied
 
-- **Multi-stage Docker build** → smaller, cleaner images
-- Migrated from Supabase to **Neon DB** for improved stability
-- Modular Maven structure & package naming
-- **Auto-deployment** via Docker image on Render
-- Extensive identity-merging logic, validated against edge cases
-
----
+- ✅ Built end-to-end system using Spring Boot + Docker
+- ✅ Mastered identity reconciliation logic (primary/secondary merging)
+- ✅ Used NeonDB + Render + Swagger + Postman ecosystem
+- ✅ Used `render.yaml` for production-ready deployment pipeline
+- ✅ Applied secure practices (env vars, Docker secrets, no hardcoding)
